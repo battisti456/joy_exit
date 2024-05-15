@@ -4,9 +4,10 @@ import subprocess
 import sys
 import logging
 
-LEVEL = logging.INFO
+LEVEL = logging.INFO - 1
 
 logger = logging.getLogger()
+logger.setLevel(LEVEL)
 formatter = logging.Formatter("%(asctime)s::%(levelname)-8s::%(message)s")
 handlers:set[logging.Handler] = {
     logging.FileHandler(
@@ -62,12 +63,12 @@ def key_handler(key:Key):
 if __name__ == '__main__':
     logger.warning(f"starting child")
     process = subprocess.Popen(sys.argv[1:])
-    logger.info("starting to watch")
     try:
+        logger.info("starting to watch")
         run_event_loop(add_handler,remove_handler,key_handler)
     except Exit:
         ...
-    logger.info("killing child")
+    logger.warning("killing child")
     process.kill()
-    logger.info("successful exit")
+    logger.warning("successful exit")
     
