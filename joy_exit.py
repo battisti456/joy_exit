@@ -33,41 +33,41 @@ current_keys:set[int] = set()
 start_holding:float|None = None
 
 def add_handler(joystick:Joystick):
-    ...
+    logger.warning(f"connected joystick {joystick}")
 def remove_handler(joystick:Joystick):
-    ...
+    logger.warning(f"diconnected joystick {joystick}")
 def key_handler(key:Key):
     global start_holding, current_keys
     if key.keytype is Key.BUTTON:
-        logging.info(f"received: num = {key.number}, val = {key.value}")
+        logger.info(f"received: num = {key.number}, val = {key.value}")
         if key.value:#start pressing
             current_keys.add(key.number)
             if current_keys.issuperset(KEYS_TO_HOLD) and start_holding is None:
                 start_holding = time()
-                logging.warning(f"started holding")
+                logger.warning(f"started holding")
         else:#stop pressing
             if key.number in current_keys:
                 current_keys.remove(key.number)
             if not start_holding is None:
                 diff = time() - start_holding
                 if diff > HOLD_TIME:
-                    logging.warning(f"triggered exit at {diff} seconds of holding")
+                    logger.warning(f"triggered exit at {diff} seconds of holding")
                     raise Exit()
             if key.number in KEYS_TO_HOLD:
-                logging.warning(f"canceled holding")
+                logger.warning(f"canceled holding")
                 start_holding = None
 
         #print(f"{key.number} : {key.value}")
 
 if __name__ == '__main__':
-    logging.warning(f"starting child")
+    logger.warning(f"starting child")
     process = subprocess.Popen(sys.argv[1:])
     try:
-        logging.info("starting to watch")
+        logger.info("starting to watch")
         run_event_loop(add_handler,remove_handler,key_handler)
     except Exit:
         ...
-    logging.info("killing child")
+    logger.info("killing child")
     process.kill()
-    logging.info("successful exit")
+    logger.info("successful exit")
     
