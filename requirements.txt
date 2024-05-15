@@ -1,0 +1,3 @@
+pyjoystick==1.2.4
+PySDL2==0.9.16
+resource-man==2.2.8
