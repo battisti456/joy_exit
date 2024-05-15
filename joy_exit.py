@@ -61,13 +61,13 @@ def key_handler(key:Key):
 
 if __name__ == '__main__':
     logger.warning(f"starting child")
-    #process = subprocess.Popen(sys.argv[1:])
+    process = subprocess.Popen(sys.argv[1:])
+    logger.info("starting to watch")
     try:
-        logger.info("starting to watch")
         run_event_loop(add_handler,remove_handler,key_handler)
     except Exit:
         ...
     logger.info("killing child")
-    #process.kill()
+    process.kill()
     logger.info("successful exit")
     
