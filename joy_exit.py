@@ -57,6 +57,8 @@ def key_handler(key:Key):
             if key.number in KEYS_TO_HOLD:
                 logger.warning(f"canceled holding")
                 start_holding = None
+    else:
+        logger.info(f"received non-button keytype {key.keytype}")
 
         #print(f"{key.number} : {key.value}")
 
