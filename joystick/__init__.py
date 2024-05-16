@@ -114,7 +114,7 @@ class JoyStickEventManager(object):
     def main_loop(self):
         event_iterator:Iterator[JoystickEvent]
         match(sys.platform):
-            case 'posix':#linux based systems
+            case 'linux':#linux based systems
                 from joystick.linux_joystick import linux_js_events
                 event_iterator = linux_js_events()
             case 'win32':#windows based systems
