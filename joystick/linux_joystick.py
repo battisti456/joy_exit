@@ -105,7 +105,7 @@ class LinuxJoystick(object):
         buf = array.array('B', [0] * 64)
         ioctl(self.dev, 0x80006a13 + (0x10000 * len(buf)), buf) # JSIOCGNAME(len)
         self.name:str = buf.tobytes().rstrip(b'\x00').decode('utf-8')
-        self.info("name = {self.name}")
+        self.info(f"name = {self.name}")
 
         self.info("extracting num_axes...")
         buf = array.array('B', [0])
