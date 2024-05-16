@@ -1,4 +1,4 @@
-from pyjoystick.sdl2 import Key, Joystick, run_event_loop,stop_event_wait
+from joystick import JoystickEvent, JoyStickEventManager, ButtonLabel
 from time import time
 import subprocess
 import sys
@@ -23,53 +23,49 @@ for handler in handlers:
 class Exit(Exception):
     ...
 
-KEYS_TO_HOLD = {
-    7,#plus
-    4#left bumper
+KEYS_TO_HOLD:set[ButtonLabel] = {
+    'start',#plus
+    'tl'#left bumper
 }
 HOLD_TIME = 4
 
-current_keys:set[int] = set()
+current_keys:set[ButtonLabel] = set()
 
 start_holding:float|None = None
 
-def add_handler(joystick:Joystick):
-    logger.warning(f"connected joystick {joystick}")
-def remove_handler(joystick:Joystick):
-    logger.warning(f"diconnected joystick {joystick}")
-def key_handler(key:Key):
+manager = JoyStickEventManager()
+
+@manager.on_event
+def key_handler(event:JoystickEvent):
     global start_holding, current_keys
-    if key.keytype is Key.BUTTON:
-        logger.info(f"received: num = {key.number}, val = {key.value}")
-        if key.value:#start pressing
-            current_keys.add(key.number)
+    if event.event_type == 'button':
+        logger.info(f"received: num = {event.label}, val = {event.value}")
+        if event.value:#start pressing
+            current_keys.add(event.label)
             if current_keys.issuperset(KEYS_TO_HOLD) and start_holding is None:
                 start_holding = time()
                 logger.warning(f"started holding")
         else:#stop pressing
-            if key.number in current_keys:
-                current_keys.remove(key.number)
+            if event.label in current_keys:
+                current_keys.remove(event.label)
             if not start_holding is None:
                 diff = time() - start_holding
                 if diff > HOLD_TIME:
                     logger.warning(f"triggered exit at {diff} seconds of holding")
-                    raise Exit()
-            if key.number in KEYS_TO_HOLD:
+                    return True
+            if event.label in KEYS_TO_HOLD:
                 logger.warning(f"canceled holding")
                 start_holding = None
     else:
-        logger.info(f"received non-button keytype {key.keytype}")
+        logger.info(f"received non-button keytype {event.event_type}")
 
         #print(f"{key.number} : {key.value}")
 
 if __name__ == '__main__':
     logger.warning(f"starting child")
     process = subprocess.Popen(sys.argv[1:])
-    try:
-        logger.info("starting to watch")
-        run_event_loop(add_handler,remove_handler,key_handler)
-    except Exit:
-        ...
+    logger.info("starting to watch")
+    manager.main_loop()
     logger.warning("killing child")
     process.kill()
     logger.warning("successful exit")
