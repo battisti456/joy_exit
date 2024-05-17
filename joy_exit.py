@@ -52,7 +52,7 @@ def on_change(button:int,queue:Queue[bool]) -> Callable[[bool],None]:
             hold_start[button] = None
     return to_return
 def controller_loop():
-    current_game_pads:dict[int,kc.Gamepad] = {}
+    current_game_pads:dict[int,kc.BaseGamepad] = {}
     queue = Queue()
 
     trigger1 = on_change(1,queue)
@@ -76,7 +76,10 @@ def controller_loop():
             val = js.joystickFile.peek()
             #logger.info(f"peeked into '{i}' and saw '{val}'")
             if val:
-                event_name, entity_name, final_value = js.getNextEvent(skipInit=False)
+                retn = js.getNextEvent(skipInit=False,noSkip=True)
+                if retn is None:
+                    continue
+                event_name, entity_name, final_value = retn
                 logger.info(f"event = {event_name}, entity = {entity_name}, raw_entity = {isinstance(entity_name,int)}, value = {final_value}")
                 if isinstance(final_value,bool):
                     if entity_name in BUTTON1_NAMES:
@@ -122,7 +125,11 @@ def joy_buttons():
             try:
                 print("Beggining loop. Press Ctrl+C to break out of it.")
                 while True:
-                    event_name, entity_name, final_value = gmpd.getNextEvent()
+                    retn = gmpd.getNextEvent()
+                    if retn is None:
+                        print("encountered an unknown command")
+                        continue
+                    event_name, entity_name, final_value = retn
                     print(f"event = {event_name}, entity = {entity_name}, raw_entity = {isinstance(entity_name,int)}, value = {final_value}")
             except KeyboardInterrupt:
                 ...
