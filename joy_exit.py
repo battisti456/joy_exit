@@ -58,15 +58,7 @@ def controller_loop():
     trigger1 = on_change(1,queue)
     trigger2 = on_change(2,queue)
     while queue.empty():
-        logger.info("new loop")
-        for i in current_game_pads:
-            if current_game_pads[i].updateThread is None:
-                logger.error(f"update thread on '{i}' is none")
-            elif not current_game_pads[i].updateThread.running:#type:ignore
-                logger.error(f"update thread on '{i}' has stopped")
         for i in kc.all_js_nums() - set(current_game_pads):
-            if i != 2:
-                continue
             val = kc.load_controller(i)
             if not val is None:
                 logger.info(f"adding controller {i}")
