@@ -8,6 +8,8 @@ import subprocess
 import sys
 import logging
 
+import select
+
 LEVEL = logging.INFO - 1
 
 logger = logging.getLogger()
@@ -65,9 +67,7 @@ def controller_loop():
                 current_game_pads[i] = val
         for i in current_game_pads:
             js = current_game_pads[i]
-            val = js.joystickFile.peek()
-            #logger.info(f"peeked into '{i}' and saw '{val}'")
-            if val:
+            if js.isNextEvent():
                 retn = js.getNextEvent(skipInit=False,noSkip=True)
                 if retn is None:
                     continue
