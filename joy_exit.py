@@ -76,7 +76,7 @@ def controller_loop():
             val = js.joystickFile.peek()
             logger.info(f"peeked into '{i}' and saw '{val}'")
             if val:
-                event_name, entity_name, final_value = js.getNextEvent()
+                event_name, entity_name, final_value = js.getNextEvent(skipInit=False)
                 logger.info(f"event = {event_name}, entity = {entity_name}, raw_entity = {isinstance(entity_name,int)}, value = {final_value}")
                 if isinstance(final_value,bool):
                     if entity_name in BUTTON1_NAMES:
