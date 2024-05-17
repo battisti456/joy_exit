@@ -1,5 +1,9 @@
-from joystick import JoystickEvent, JoyStickEventManager, ButtonLabel
-from time import time
+from typing import Callable
+from queue import Queue
+
+import linux_joystick_battisti456.known_controller_names as kc
+
+from time import time, sleep
 import subprocess
 import sys
 import logging
@@ -20,53 +24,65 @@ for handler in handlers:
     handler.setLevel(LEVEL)
     logger.addHandler(handler)
 
-class Exit(Exception):
-    ...
-
-KEYS_TO_HOLD:set[ButtonLabel] = {
-    'start',#plus
-    'tl'#left bumper
+BUTTON1_NAMES = {
+    'L1',#PS4, PS3
+    'LB',#STEAM,XBOX360,XBOXONE,
 }
-HOLD_TIME = 4
+BUTTON2_NAMES = {
+    'START',#XBOX360,XBOXONE,STEAM
+    'OPTIONS',#PS4,PS3
+}
+AMOUNT_OF_TIME = 4
 
-current_keys:set[ButtonLabel] = set()
+hold_start:dict[int,float|None] = {1 : None, 2: None}
 
 start_holding:float|None = None
+def on_change(button:int,queue:Queue[bool]) -> Callable[[bool],None]:
+    def to_return(value:bool):
+        logger.info(f"button = {button}, value = {value}")
+        if value:
+            if hold_start[button] is None:
+                hold_start[button] = time()
+        else:
+            if not any(hold_start[button] == None for button in hold_start):
+                now = time()
+                if all(now - hold_start[button] > AMOUNT_OF_TIME for button in hold_start):#type:ignore
+                    queue.put(False)
+            hold_start[button] = None
+    return to_return
+def controller_loop():
+    current_game_pads:dict[int,kc.Gamepad] = {}
+    queue = Queue()
+    while queue.empty():
+        logger.info("new loop")
+        for i in kc.all_js_nums() - set(current_game_pads):
+            val = kc.load_controller(i)
+            if not val is None:
+                logger.info(f"adding controller {i}")
+                current_game_pads[i] = val
+                for button in BUTTON1_NAMES:
+                    try:
+                        current_game_pads[i].addButtonChangedHandler(button,on_change(1,queue))#type:ignore
+                    except ValueError:
+                        ...
+                for button in BUTTON2_NAMES:
+                    try:
+                        current_game_pads[i].addButtonChangedHandler(button,on_change(2,queue))#type:ignore
+                    except ValueError:
+                        ...
+                current_game_pads[i].startBackgroundUpdates()
+        sleep(10)
+    for game_pad in current_game_pads.values():
+        del game_pad
 
-manager = JoyStickEventManager()
-
-@manager.on_event
-def key_handler(event:JoystickEvent):
-    global start_holding, current_keys
-    if event.event_type == 'button':
-        logger.info(f"received: num = {event.label}, val = {event.value}")
-        if event.value:#start pressing
-            current_keys.add(event.label)
-            if current_keys.issuperset(KEYS_TO_HOLD) and start_holding is None:
-                start_holding = time()
-                logger.warning(f"started holding")
-        else:#stop pressing
-            if event.label in current_keys:
-                current_keys.remove(event.label)
-            if not start_holding is None:
-                diff = time() - start_holding
-                if diff > HOLD_TIME:
-                    logger.warning(f"triggered exit at {diff} seconds of holding")
-                    return True
-            if event.label in KEYS_TO_HOLD:
-                logger.warning(f"canceled holding")
-                start_holding = None
-    else:
-        logger.info(f"received non-button keytype {event.event_type}")
-
-        #print(f"{key.number} : {key.value}")
-
-if __name__ == '__main__':
+def joy_exit():
     logger.warning(f"starting child")
     process = subprocess.Popen(sys.argv[1:])
     logger.info("starting to watch")
-    manager.main_loop()
+    controller_loop()
     logger.warning("killing child")
     process.kill()
     logger.warning("successful exit")
+if __name__ == '__main__':
+    joy_exit()
     
