@@ -61,6 +61,7 @@ def controller_loop():
             if not val is None:
                 logger.info(f"adding controller {i}")
                 current_game_pads[i] = val
+                current_game_pads[i].waitReady()
                 for button in BUTTON1_NAMES:
                     try:
                         current_game_pads[i].addButtonChangedHandler(button,on_change(1,queue))#type:ignore
