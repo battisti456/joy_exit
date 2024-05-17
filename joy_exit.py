@@ -3,12 +3,10 @@ from queue import Queue
 
 import linux_joystick_battisti456.known_controller_names as kc
 
-from time import time, sleep
+from time import time
 import subprocess
 import sys
 import logging
-
-import select
 
 LEVEL = logging.INFO - 1
 
@@ -85,13 +83,10 @@ def controller_loop():
         del game_pad
 
 def joy_exit():
-    logger.warning(f"starting child")
-    process = subprocess.Popen(sys.argv[1:])
-    logger.info("starting to watch")
+    logger.info("waiting for button presses")
     controller_loop()
-    logger.warning("killing child")
-    process.kill()
-    logger.warning("successful exit")
+    logger.warning(f"executing command")
+    subprocess.run(sys.argv[1:])
 
 def joy_buttons():
     try:
