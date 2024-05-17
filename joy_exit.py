@@ -54,6 +54,9 @@ def on_change(button:int,queue:Queue[bool]) -> Callable[[bool],None]:
 def controller_loop():
     current_game_pads:dict[int,kc.Gamepad] = {}
     queue = Queue()
+
+    trigger1 = on_change(1,queue)
+    trigger2 = on_change(2,queue)
     while queue.empty():
         logger.info("new loop")
         for i in current_game_pads:
@@ -66,18 +69,18 @@ def controller_loop():
             if not val is None:
                 logger.info(f"adding controller {i}")
                 current_game_pads[i] = val
-                current_game_pads[i].waitReady()
-                for button in BUTTON1_NAMES:
-                    try:
-                        current_game_pads[i].addButtonChangedHandler(button,on_change(1,queue))#type:ignore
-                    except ValueError:
-                        logger.warning(f"failed to add '{button}' event to '{i}'")
-                for button in BUTTON2_NAMES:
-                    try:
-                        current_game_pads[i].addButtonChangedHandler(button,on_change(2,queue))#type:ignore
-                    except ValueError:
-                        logger.warning(f"failed to add '{button}' event to '{i}'")
-                current_game_pads[i].startBackgroundUpdates()
+        for i in current_game_pads:
+            js = current_game_pads[i]
+            if js.joystickFile.peek(1):
+                event_name, entity_name, final_value = js.getNextEvent()
+                logger.info(f"event = {event_name}, entity = {entity_name}, raw_entity = {isinstance(entity_name,int)}, value = {final_value}")
+                if isinstance(final_value,bool):
+                    if entity_name in BUTTON1_NAMES:
+                        trigger1(final_value)
+                    if entity_name in BUTTON2_NAMES:
+                        trigger2(final_value)
+                    
+                
         sleep(10)
     for game_pad in current_game_pads.values():
         del game_pad
