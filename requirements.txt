@@ -1,1 +1,1 @@
-linux_joystick_battisti456 @ git+https://github.com/battisti456/linux-joystick.git@2de077c3a4e243cb3e0cf33e8081c82f2864f3dd
+linux_joystick_battisti456 @ git+https://github.com/battisti456/linux-joystick.git
