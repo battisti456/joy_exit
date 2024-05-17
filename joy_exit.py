@@ -65,6 +65,8 @@ def controller_loop():
             elif not current_game_pads[i].updateThread.running:#type:ignore
                 logger.error(f"update thread on '{i}' has stopped")
         for i in kc.all_js_nums() - set(current_game_pads):
+            if i != 2:
+                continue
             val = kc.load_controller(i)
             if not val is None:
                 logger.info(f"adding controller {i}")
