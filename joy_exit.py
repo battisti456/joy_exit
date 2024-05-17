@@ -56,6 +56,11 @@ def controller_loop():
     queue = Queue()
     while queue.empty():
         logger.info("new loop")
+        for i in current_game_pads:
+            if current_game_pads[i].updateThread is None:
+                logger.error(f"update thread on '{i}' is none")
+            elif not current_game_pads[i].updateThread.running:#type:ignore
+                logger.error(f"update thread on '{i}' has stopped")
         for i in kc.all_js_nums() - set(current_game_pads):
             val = kc.load_controller(i)
             if not val is None:
