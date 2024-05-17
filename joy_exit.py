@@ -71,7 +71,7 @@ def controller_loop():
                 current_game_pads[i] = val
         for i in current_game_pads:
             js = current_game_pads[i]
-            val = js.joystickFile.peek(1)
+            val = js.joystickFile.peek()
             logger.info(f"peeked into '{i}' and saw '{val}'")
             if val:
                 event_name, entity_name, final_value = js.getNextEvent()
