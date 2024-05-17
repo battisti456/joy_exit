@@ -83,6 +83,42 @@ def joy_exit():
     logger.warning("killing child")
     process.kill()
     logger.warning("successful exit")
+
+def joy_buttons():
+    try:
+        while True:
+            chosen:int = -1
+            available:set[int] = set()
+            while not chosen in available:
+                available:set[int] = kc.all_js_nums()
+                print(f"The josticks available are all in: {available}")
+                inpt = input("Which one would you like to explore? ")
+                if inpt.isdecimal():
+                    chosen = int(inpt)
+                    if not chosen in available:
+                        print("I am sorry, that input is not currently available.")
+                else:
+                    print("I am sorry, I couldn't interpret that.")
+            name = kc.get_name(chosen)
+            print(f"This gamepad is named '{name}'.")
+            gmpd = kc.load_controller(chosen)
+            if gmpd is None:
+                print("Sorry, something went wrong.")
+                continue
+            try:
+                print("Beggining loop. Press Ctrl+C to break out of it.")
+                while True:
+                    event_name, entity_name, final_value = gmpd.getNextEvent()
+                    print(f"event = {event_name}, entity = {entity_name}, raw_entity = {isinstance(entity_name,int)}, value = {final_value}")
+            except KeyboardInterrupt:
+                ...
+    except KeyboardInterrupt:
+        ...
 if __name__ == '__main__':
-    joy_exit()
+    if len(sys.argv) > 1:
+        logger.info(f"monitoring to control exit of {' '.join(sys.argv[1:])}")
+        joy_exit()
+    else:
+        logger.info("exploring controller buttons")
+        joy_buttons()
     
