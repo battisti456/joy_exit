@@ -71,7 +71,9 @@ def controller_loop():
                 current_game_pads[i] = val
         for i in current_game_pads:
             js = current_game_pads[i]
-            if js.joystickFile.peek(1):
+            val = js.joystickFile.peek(1)
+            logger.info(f"peeked into '{i}' and saw '{val}'")
+            if val:
                 event_name, entity_name, final_value = js.getNextEvent()
                 logger.info(f"event = {event_name}, entity = {entity_name}, raw_entity = {isinstance(entity_name,int)}, value = {final_value}")
                 if isinstance(final_value,bool):
